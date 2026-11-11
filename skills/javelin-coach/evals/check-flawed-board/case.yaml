@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: check-flawed-board
+expected_outcome: |
+  Scores the board against the 7 gates with a low score and concrete rewrites: segment too broad, problem names a solution, solution filled too early, three assumptions bundled, criterion not numeric, hypothetical question, classmates not a valid sample.

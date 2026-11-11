@@ -1,0 +1,13 @@
+{
+  "name": "javelin-coach",
+  "version": "1.0.0",
+  "description": "Coach a team through the Javelin Board: customer, problem, riskiest assumption, interviews, results and a persevere/pivot decision, with a sticky-note board image. Arabic and English.",
+  "author": {
+    "name": "Team Wamy",
+    "url": "https://github.com/soultntoure"
+  },
+  "homepage": "https://github.com/soultntoure/javelin-coach",
+  "repository": "https://github.com/soultntoure/javelin-coach",
+  "license": "MIT",
+  "keywords": ["javelin-board", "lean-startup", "customer-discovery", "experiments", "entrepreneurship", "arabic"]
+}

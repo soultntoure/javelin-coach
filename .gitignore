@@ -1,0 +1,9 @@
+# Build output: attach dist/javelin-coach.zip to a GitHub Release instead
+dist/
+
+# Eval run output
+skills/javelin-coach/evals/results/
+
+node_modules/
+.DS_Store
+Thumbs.db

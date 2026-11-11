@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Javelin Board</title>
+<style>
+  body { margin: 0; background: #e9e7e1; font-family: "Segoe UI", Tahoma, Arial, sans-serif; }
+  #bar { display: flex; gap: 12px; align-items: center; padding: 10px 16px; background: #222; color: #fff; font-size: 14px; }
+  #bar a { background: #ffe96b; color: #222; padding: 8px 14px; border-radius: 6px; font-weight: 600; text-decoration: none; }
+  #board { display: block; max-width: 100%; height: auto; margin: 0 auto; }
+  body.export #bar { display: none; }
+  body.export #board { max-width: none; }
+</style>
+</head>
+<body>
+<div id="bar"><a id="download" download="javelin-board.png">Download PNG</a><span>Or right-click the board, then "Save image as".</span></div>
+<canvas id="board" width="2400" height="1500"></canvas>
+
+<!-- The coach replaces the JSON below with the team's board. Schema: see the skill's SKILL.md, "Board image". -->
+<script id="board-data" type="application/json">
+{"lang": "en", "project": "My idea", "experiments": []}
+</script>
+
+<script>
+(function () {
+  const W = 2400, H = 1500;
+  const FONT = '"Segoe UI", Tahoma, "Noto Sans Arabic", Arial, sans-serif';
+  const data = JSON.parse(document.getElementById("board-data").textContent);
+  const L = {
+    en: { title: "Javelin Board", brainstorm: "Brainstorm", start: "Start here. Brainstorm with stickies, pull the best over to the right to start your experiment.",
+      customer: "Customer", problem: "Problem", solution: "Solution", parkedNote: "only after validating a problem worth solving", assumptions: "Assumptions",
+      riskiest: "Riskiest assumption", methodCrit: "Method & success criterion", getOut: "GET OUT OF THE BUILDING!", resultDec: "Result & decision",
+      learning: "Learning", experiment: "Experiment", method: "Method", criterion: "Criterion", locked: "locked", result: "Result", decision: "Decision",
+      persevere: "PERSEVERE", pivot: "PIVOT", retest: "RETEST", pending: "IN PROGRESS", more: "more",
+      lAssumption: "Assumption", lEvidence: "Evidence", lRisk: "Riskiest assumption", lParked: "Parked solution", credit: "Javelin Board (javelin.com) · Binaa entrepreneurship programme, Raz · javelin-coach" },
+    ar: { title: "لوحة جافلين", brainstorm: "العصف الذهني", start: "ابدأ من هنا. اعصف ذهنيًا بالملاحظات اللاصقة، ثم اسحب أفضلها إلى اليسار لتبدأ تجربتك.",
+      customer: "العميل", problem: "المشكلة", solution: "الحل", parkedNote: "بعد التحقق من المشكلة", assumptions: "الافتراضات",
+      riskiest: "الافتراض الأخطر", methodCrit: "الطريقة ومعيار النجاح", getOut: "اخرج من المبنى!", resultDec: "النتيجة والقرار",
+      learning: "التعلّم", experiment: "التجربة", method: "طريقة الاختبار", criterion: "المعيار", locked: "مقفل", result: "النتيجة", decision: "القرار",
+      persevere: "نستمر", pivot: "نعدّل / نتحول", retest: "نعيد الاختبار", pending: "قيد التنفيذ", more: "أخرى",
+      lAssumption: "افتراض", lEvidence: "دليل", lRisk: "الافتراض الأخطر", lParked: "حل مؤجَّل", credit: "لوحة جافلين · ملتقى بناء لريادة الأعمال، راز للاستشارات التطويرية · javelin-coach" }
+  };
+  const lang = L[data.lang] ? data.lang : "en";
+  const t = L[lang];
+  const RTL = lang === "ar";
+  const COLORS = { assumption: "#FFE96B", evidence: "#9EE29A", risk: "#FFB0C8", parked: "#D9D9D9", method: "#A9D8F2",
+    criterion: "#FFCF8F", result: "#FFF4C2", learning: "#E8D5B7", persevere: "#5CC66A", pivot: "#FF7F73", retest: "#A4ABFF", pending: "#FFFFFF" };
+
+  const canvas = document.getElementById("board");
+  const ctx = canvas.getContext("2d");
+  const mx = (x, w) => (RTL ? W - x - w : x);
+  const isArabic = (s) => /[؀-ۿ]/.test(s);
+
+  function norm(v, kind) {
+    if (v === undefined || v === null || v === "") return null;
+    if (typeof v === "string") return { text: v, kind: kind };
+    return { text: String(v.text || ""), kind: v.kind || kind, picked: !!v.picked, locked: v.locked || "" };
+  }
+
+  let broke = false;
+  function wrap(text, width) {
+    const lines = [];
+    broke = false;
+    String(text).split("\n").forEach((para) => {
+      let line = "";
+      para.split(/\s+/).filter(Boolean).forEach((word) => {
+        const tryLine = line ? line + " " + word : word;
+        if (ctx.measureText(tryLine).width <= width) { line = tryLine; return; }
+        if (line) lines.push(line);
+        if (ctx.measureText(word).width <= width) { line = word; return; }
+        broke = true;
+        let chunk = "";
+        for (const ch of word) {
+          if (ctx.measureText(chunk + ch).width > width && chunk) { lines.push(chunk); chunk = ch; } else chunk += ch;
+        }
+        line = chunk;
+      });
+      lines.push(line);
+    });
+    return lines;
+  }
+
+  function fitText(text, w, h, maxSize, minSize, weight) {
+    for (let size = maxSize; size >= minSize; size--) {
+      ctx.font = `${weight} ${size}px ${FONT}`;
+      const lines = wrap(text, w);
+      if (lines.length * size * 1.22 <= h && !broke) return { size, lines };
+    }
+    ctx.font = `${weight} ${minSize}px ${FONT}`;
+    const max = Math.max(1, Math.floor(h / (minSize * 1.22)));
+    const lines = wrap(text, w).slice(0, max);
+    lines[max - 1] = lines[max - 1].replace(/.{0,2}$/, "") + "…";
+    return { size: minSize, lines };
+  }
+
+  function drawText(text, x, y, w, h, opts) {
+    const o = Object.assign({ max: 22, min: 11, weight: "400", color: "#222", align: "center" }, opts || {});
+    const fit = fitText(text, w, h, o.max, o.min, o.weight);
+    ctx.fillStyle = o.color;
+    ctx.textBaseline = "middle";
+    ctx.direction = isArabic(text) ? "rtl" : "ltr";
+    ctx.textAlign = o.align;
+    const lh = fit.size * 1.22;
+    const top = y + (h - fit.lines.length * lh) / 2 + lh / 2;
+    const ax = o.align === "center" ? x + w / 2 : (o.align === "right" ? x + w : x);
+    fit.lines.forEach((ln, i) => ctx.fillText(ln, ax, top + i * lh));
+  }
+
+  function roundRect(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+
+  let seed = 7;
+  function sticky(x, y, w, h, item, opts) {
+    const o = opts || {};
+    seed = (seed * 9301 + 49297) % 233280;
+    const angle = ((seed / 233280) - 0.5) * 0.03;
+    ctx.save();
+    ctx.translate(x + w / 2, y + h / 2); ctx.rotate(angle); ctx.translate(-w / 2, -h / 2);
+    ctx.shadowColor = "rgba(0,0,0,0.22)"; ctx.shadowBlur = 8; ctx.shadowOffsetY = 4;
+    ctx.fillStyle = COLORS[item.kind] || COLORS.assumption;
+    ctx.fillRect(0, 0, w, h);
+    ctx.shadowColor = "transparent";
+    if (item.kind === "pending") { ctx.setLineDash([8, 6]); ctx.strokeStyle = "#999"; ctx.lineWidth = 2; ctx.strokeRect(1, 1, w - 2, h - 2); ctx.setLineDash([]); }
+    ctx.fillStyle = "rgba(0,0,0,0.07)"; ctx.fillRect(0, 0, w, Math.min(16, h * 0.12));
+    let top = 10;
+    if (o.caption) { drawText(o.caption, 8 + (item.locked && RTL ? 18 : 0), 4, w - 16 - (item.locked ? 18 : 0), 22, { max: 15, min: 11, weight: "600", color: "rgba(0,0,0,0.55)" }); top = 26; }
+    drawText(item.text, 10, top, w - 20, h - top - (item.picked ? 24 : 8), { max: o.max || 22, min: 11, weight: o.weight || "400" });
+    if (item.locked) {
+      const lx = RTL ? 8 : w - 24, ly = 6;
+      ctx.strokeStyle = "#333"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(lx + 8, ly + 8, 5, Math.PI, 0); ctx.stroke();
+      ctx.fillStyle = "#333"; ctx.fillRect(lx + 1, ly + 8, 14, 11);
+    }
+    if (item.picked) {
+      ctx.fillStyle = "#2D6CDF"; ctx.beginPath(); ctx.arc(RTL ? 14 : w - 14, h - 14, 11, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = "#fff"; ctx.lineWidth = 3; ctx.beginPath();
+      const cx = RTL ? 14 : w - 14, cy = h - 14;
+      ctx.moveTo(cx - 5, cy); ctx.lineTo(cx - 1, cy + 4); ctx.lineTo(cx + 6, cy - 4); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function panel(x, y, w, h, fill) {
+    ctx.save(); ctx.shadowColor = "rgba(0,0,0,0.12)"; ctx.shadowBlur = 10;
+    roundRect(mx(x, w), y, w, h, 14); ctx.fillStyle = fill; ctx.fill(); ctx.restore();
+  }
+
+  // Background and title
+  ctx.fillStyle = "#e9e7e1"; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "#222"; ctx.fillRect(0, 0, W, 96);
+  const title = t.title + (data.project ? " · " + data.project : "");
+  drawText(title, mx(30, 1300), 14, 1300, 68, { max: 44, min: 24, weight: "700", color: "#fff", align: RTL ? "right" : "left" });
+  const meta = [data.team, data.date].filter(Boolean).join(" · ");
+  if (meta) drawText(meta, mx(1370, 1000), 24, 1000, 48, { max: 26, min: 14, color: "#ddd", align: RTL ? "left" : "right" });
+
+  // Brainstorm panel
+  const BX = 30, BY = 120, BW = 660, BH = 1300;
+  panel(BX, BY, BW, BH, "#FAFAF6");
+  drawText(t.brainstorm, mx(BX + 20, BW - 40), BY + 10, BW - 40, 40, { max: 30, min: 18, weight: "700", align: RTL ? "right" : "left" });
+  drawText(t.start, mx(BX + 20, BW - 40), BY + 48, BW - 40, 34, { max: 17, min: 12, color: "#666", align: RTL ? "right" : "left" });
+  const bs = data.brainstorm || {};
+  const sections = [
+    { key: "customer", label: t.customer, rows: 2, kind: "assumption" },
+    { key: "problem", label: t.problem, rows: 2, kind: "assumption" },
+    { key: "solution", label: t.solution, rows: 1, kind: "parked", note: t.parkedNote },
+    { key: "assumptions", label: t.assumptions, rows: 3, kind: "assumption" },
+  ];
+  const COLS = 4, SW = 145, SH = 104, ROWH = 116, COLW = (BW - 30) / COLS;
+  let sy = BY + 96;
+  sections.forEach((s) => {
+    const secH = 44 + s.rows * ROWH + 14;
+    if (s.kind === "parked") { ctx.fillStyle = "rgba(0,0,0,0.06)"; ctx.fillRect(mx(BX + 10, BW - 20), sy - 4, BW - 20, secH); }
+    drawText(s.label + (s.note ? "  (" + s.note + ")" : ""), mx(BX + 20, BW - 40), sy, BW - 40, 36, { max: 22, min: 13, weight: "700", align: RTL ? "right" : "left" });
+    const items = (bs[s.key] || []).map((v) => norm(v, s.kind)).filter(Boolean);
+    const slots = s.rows * COLS;
+    const shown = items.length > slots ? items.slice(0, slots - 1) : items;
+    shown.forEach((it, i) => {
+      const c = i % COLS, r = Math.floor(i / COLS);
+      sticky(mx(BX + 15 + c * COLW + (COLW - SW) / 2, SW), sy + 44 + r * ROWH, SW, SH, it, { max: 18 });
+    });
+    if (items.length > slots) {
+      const i = slots - 1, c = i % COLS, r = Math.floor(i / COLS);
+      sticky(mx(BX + 15 + c * COLW + (COLW - SW) / 2, SW), sy + 44 + r * ROWH, SW, SH, { text: "+" + (items.length - slots + 1) + " " + t.more, kind: "pending" }, { max: 20 });
+    }
+    sy += secH + 8;
+  });
+
+  // Experiment grid
+  const GX = 720, GY = 120, GW = 1650, LABW = 240, COLWX = (GW - LABW) / 5, HEADH = 56, BANDH = 56;
+  const ROWHX = (1300 - HEADH - BANDH) / 7;
+  panel(GX, GY, GW, 1300, "#FFFFFF");
+  const exps = (data.experiments || []).slice(0, 5);
+  for (let j = 0; j < 5; j++) {
+    drawText(t.experiment + " " + (j + 1), mx(GX + LABW + j * COLWX, COLWX), GY + 6, COLWX, HEADH - 12, { max: 22, min: 14, weight: "700", color: "#444" });
+  }
+  const rows = [
+    { label: t.customer, cells: (e) => [norm(e.customer, "assumption")] },
+    { label: t.problem, cells: (e) => [norm(e.problem, "assumption")] },
+    { label: t.solution, grey: true, cells: (e) => [norm(e.solution, "parked")] },
+    { label: t.riskiest, cells: (e) => [norm(e.assumption, "risk")] },
+    { label: t.methodCrit, cells: (e) => [norm(e.method, "method"), norm(e.criterion, "criterion")],
+      captions: [t.method, t.criterion] },
+    { band: true },
+    { label: t.resultDec, cells: (e) => [norm(e.result, "result"), e.decision ? { text: t[e.decision] || String(e.decision), kind: COLORS[e.decision] ? e.decision : "pending" } : null], captions: [t.result, t.decision], bigSecond: true },
+    { label: t.learning, cells: (e) => [norm(e.learning, "learning")] },
+  ];
+  let ry = GY + HEADH;
+  rows.forEach((row) => {
+    if (row.band) {
+      ctx.fillStyle = "#222"; ctx.fillRect(mx(GX, GW), ry, GW, BANDH);
+      drawText(t.getOut, mx(GX, GW), ry, GW, BANDH, { max: 28, min: 16, weight: "800", color: "#FFE96B" });
+      ry += BANDH; return;
+    }
+    ctx.fillStyle = row.grey ? "#EDEDED" : "#F4F3EE"; ctx.fillRect(mx(GX, LABW), ry, LABW, ROWHX);
+    if (row.grey) { ctx.fillStyle = "#F3F3F3"; ctx.fillRect(mx(GX + LABW, GW - LABW), ry, GW - LABW, ROWHX); }
+    ctx.strokeStyle = "#E0DED6"; ctx.lineWidth = 1; ctx.strokeRect(mx(GX, GW), ry, GW, ROWHX);
+    drawText(row.label, mx(GX + 14, LABW - 28), ry, LABW - 28, ROWHX, { max: 23, min: 13, weight: "700", color: "#333", align: RTL ? "right" : "left" });
+    for (let j = 0; j < 5; j++) {
+      const cx = GX + LABW + j * COLWX;
+      ctx.strokeStyle = "#E0DED6"; ctx.strokeRect(mx(cx, COLWX), ry, COLWX, ROWHX);
+      const e = exps[j];
+      if (!e) continue;
+      const cells = row.cells(e);
+      const pad = 10, h = ROWHX - 2 * pad;
+      if (cells.length === 1) {
+        if (cells[0]) sticky(mx(cx + pad, COLWX - 2 * pad), ry + pad, COLWX - 2 * pad, h, cells[0], { max: 20 });
+      } else {
+        const w = (COLWX - 3 * pad) / 2;
+        cells.forEach((c, k) => {
+          if (!c) return;
+          const big = row.bigSecond && k === 1;
+          const cap = typeof row.captions[k] === "function" ? row.captions[k](c) : row.captions[k];
+          sticky(mx(cx + pad + k * (w + pad), w), ry + pad, w, h, c, { caption: cap, max: big ? 24 : 17, weight: big ? "800" : "400" });
+        });
+      }
+    }
+    ry += ROWHX;
+  });
+
+  // Legend and credit
+  const legend = [["assumption", t.lAssumption], ["evidence", t.lEvidence], ["risk", t.lRisk], ["parked", t.lParked],
+    ["persevere", t.persevere], ["pivot", t.pivot], ["retest", t.retest]];
+  let lx = 30;
+  legend.forEach(([k, label]) => {
+    ctx.fillStyle = COLORS[k]; ctx.fillRect(mx(lx, 26), 1442, 26, 26);
+    ctx.strokeStyle = "rgba(0,0,0,0.25)"; ctx.strokeRect(mx(lx, 26), 1442, 26, 26);
+    drawText(label, mx(lx + 34, 190), 1438, 190, 34, { max: 18, min: 12, color: "#333", align: RTL ? "right" : "left" });
+    lx += 240;
+  });
+  drawText(t.credit, mx(1720, 650), 1438, 650, 34, { max: 15, min: 11, color: "#777", align: RTL ? "left" : "right" });
+
+  // Export
+  if (location.hash === "#export") document.body.className = "export";
+  const link = document.getElementById("download");
+  try {
+    link.href = canvas.toDataURL("image/png");
+    link.download = "javelin-board-" + String(data.project || "board").replace(/[^\w؀-ۿ-]+/g, "-") + ".png";
+  } catch (err) { link.style.display = "none"; }
+})();
+</script>
+</body>
+</html>

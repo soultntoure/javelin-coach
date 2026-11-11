@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: start-riskiest-assumption-arabic
+expected_outcome: |
+  Replies in Arabic; parks the tutoring app as a solution; drafts several assumptions, rates them and recommends one riskiest; recommends interviews; asks the team to set the success-criterion numbers instead of choosing them; produces a board image or renderable board.

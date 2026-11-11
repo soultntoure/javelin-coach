@@ -1,0 +1,91 @@
+{
+  "lang": "en",
+  "project": "Yakin (halal chicken backup)",
+  "team": "Team Wamy",
+  "date": "2026-11-11",
+  "brainstorm": {
+    "customer": [
+      "SMEs moving full-lorry loads over 5 tonnes",
+      "Small lorry owners with 2-5 trucks",
+      "Frozen-food businesses that get sudden orders but have no logistics",
+      "Halal poultry processors",
+      "Halal restaurants and cafes that rely on one chicken supplier",
+      {
+        "text": "Chicken suppliers and wholesalers in Kuantan",
+        "picked": true
+      }
+    ],
+    "problem": [
+      "Carriers get paid 30-90 days late",
+      "Sudden orders they can't refuse but can't deliver",
+      "Can't prove the lorry kept goods halal",
+      "When my halal supplier runs out, I take chicken off the menu or close, because I can't trust a new supplier",
+      {
+        "text": "Finding new restaurant customers is slow; leftover stock",
+        "picked": true
+      }
+    ],
+    "solution": [
+      "Lorry marketplace with bidding",
+      "Managed freight desk",
+      "Verified halal backup-supplier app"
+    ],
+    "assumptions": [
+      "Restaurants trust OUR halal verification of a new supplier",
+      "Stockouts are local, so backup suppliers still have stock",
+      "Owners act within hours, not days",
+      "Suppliers want new restaurant customers",
+      {
+        "text": "Suppliers will pay per lead",
+        "picked": true
+      },
+      "Owners will try a trial order from a stranger"
+    ]
+  },
+  "experiments": [
+    {
+      "customer": "Frozen-food businesses with sudden orders and no logistics (Kuantan)",
+      "problem": "Sudden orders they can't refuse but can't deliver",
+      "assumption": "They lose sales today because they can't find transport fast",
+      "method": "Phone calls + street interviews",
+      "criterion": {
+        "text": "X of Y interviewees describe the pain unprompted (fixed before going out)",
+        "locked": "before going out"
+      },
+      "result": "Calls: no answer (untested). 3 street interviews: suppliers deliver themselves; real pain = supplier runs out",
+      "decision": "pivot",
+      "learning": "The pain we heard was the restaurant's supply, not transport. 2 of 2 is a signal, not proof"
+    },
+    {
+      "customer": {
+        "text": "Halal restaurants and cafes relying on one chicken supplier (Kuantan)",
+        "kind": "evidence"
+      },
+      "problem": {
+        "text": "Supplier runs out: chicken off the menu or close, can't trust a new supplier",
+        "kind": "evidence"
+      },
+      "solution": {
+        "text": "Yakin: verified halal backup suppliers nearby (clickable prototype)",
+        "kind": "assumption"
+      },
+      "assumption": "Owners trust our verification enough to sign up for a backup supplier",
+      "method": "In-person prototype demo + no-money sign-up",
+      "criterion": {
+        "text": "At least 3 owners sign up (target 8 visits)",
+        "locked": "before visits"
+      },
+      "result": "5 visited, 3 confirmed the problem, tried it and gave contact details",
+      "decision": "persevere",
+      "learning": "Sign-up behaviour met the bar on 5 visits. Next risk moves to the supplier side: who pays?"
+    },
+    {
+      "customer": "Chicken suppliers and wholesalers in Kuantan",
+      "problem": "Finding new restaurant customers is slow; leftover stock",
+      "assumption": "Suppliers will pay per verified restaurant lead",
+      "method": "Pre-sell: letter of intent, no money collected",
+      "criterion": "Team sets the fraction before outreach",
+      "decision": "pending"
+    }
+  ]
+}

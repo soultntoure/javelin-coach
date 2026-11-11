@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: check-arabic-will-you-buy
+expected_outcome: |
+  Replies in Arabic using the workshop wording; flags «هل ستشتري؟» as a hypothetical question (what people say, weak evidence); says the persevere decision is not justified and the right call is to retest with a stronger rung of the experiment ladder (e.g. a pre-order with cash on delivery, no money collected); references the pre-approval checklist (بوابة الاعتماد).
