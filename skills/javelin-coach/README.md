@@ -32,6 +32,9 @@ What it won't let you do (on purpose):
 **Claude Code**
 Copy the `javelin-coach` folder into `~/.claude/skills/` (for all your projects) or into `.claude/skills/` in one project. Then type `/javelin-coach`.
 
+**Codex**
+Copy the `javelin-coach` folder into `~/.agents/skills/`, then restart Codex.
+
 **ChatGPT** (not as precise)
 Paste the contents of `SKILL.md` into a Custom GPT's or Project's instructions, and upload the files in the `references` folder as knowledge files.
 

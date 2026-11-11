@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1 (2026-11-11)
+
+- Install commands for Codex: the plugin marketplace (`codex plugin marketplace add`, then `codex plugin add`) or a manual copy to `~/.agents/skills/`. No change to the skill itself.
+
 ## 1.0.0 (2026-11-11)
 
 First release.

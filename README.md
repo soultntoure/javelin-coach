@@ -1,6 +1,6 @@
 # Javelin Coach
 
-A Claude skill that coaches your team through the [Javelin Board](https://www.javelin.com), from choosing a customer to an honest persevere-or-pivot decision, and draws your board as a sticky-note image.
+An agent skill for Claude and Codex that coaches your team through the [Javelin Board](https://www.javelin.com), from choosing a customer to an honest persevere-or-pivot decision, and draws your board as a sticky-note image.
 
 ![Example Javelin board rendered by the skill](docs/images/example-board-en.png)
 
@@ -24,25 +24,27 @@ Every mode can end with a **board image** (PNG) in English or Arabic. The skill 
 
 ## Install
 
-### Claude Code (plugin marketplace)
+### Claude Code
 
-In a Claude Code session:
-
-```
-/plugin marketplace add soultntoure/javelin-coach
-/plugin install javelin-coach@javelin-coach
-```
-
-`/plugin install` opens the plugin's details panel so you can choose a scope (user, project or local) before installing. If the skill doesn't show up straight away, restart Claude Code.
-
-Or from your terminal:
+Run in your terminal, then restart Claude Code:
 
 ```
 claude plugin marketplace add soultntoure/javelin-coach
 claude plugin install javelin-coach@javelin-coach
 ```
 
-The CLI installs to user scope by default. Add `--scope project` to share it with a project's collaborators.
+Inside a Claude Code session, the same commands are `/plugin marketplace add soultntoure/javelin-coach` and `/plugin install javelin-coach@javelin-coach`. Add `--scope project` to share the plugin with a project's collaborators.
+
+### Codex
+
+Run in your terminal, then restart Codex:
+
+```
+codex plugin marketplace add soultntoure/javelin-coach
+codex plugin add javelin-coach@javelin-coach
+```
+
+If `codex plugin add` isn't recognised, update Codex, or run only the first command and install **javelin-coach** from the Plugins directory in the Codex desktop app.
 
 ### Claude.ai or the Claude desktop app
 
@@ -53,13 +55,18 @@ The CLI installs to user scope by default. Add `--scope project` to share it wit
 
 Skills are available on Claude's paid and free plans, but availability can vary by plan and an organisation owner can turn off skill uploads on Team and Enterprise.
 
-### Manual (Claude Code, no marketplace)
+### Manual (no marketplace)
 
-Copy `skills/javelin-coach/` into `~/.claude/skills/` (all projects) or into a project's `.claude/skills/`. It then runs as `/javelin-coach`.
+```
+git clone https://github.com/soultntoure/javelin-coach
+```
+
+Then copy `javelin-coach/skills/javelin-coach/` into `~/.claude/skills/` for Claude Code, or `~/.agents/skills/` for Codex.
 
 ## Usage
 
 - **Claude Code:** type `/javelin-coach:javelin-coach` (plugin install) or `/javelin-coach` (manual install), or just describe what you're doing. Claude loads the skill when the request matches.
+- **Codex:** describe what you're doing, or say "Use the javelin-coach skill: …".
 - **Claude.ai / desktop:** start a new chat and say "Use Javelin Coach: …", or just describe what you're doing.
 
 A short session:
@@ -67,7 +74,7 @@ A short session:
 ```
 You:    /javelin-coach:javelin-coach We're starting the Javelin board. Idea: an app for home bakers.
 Coach:  Step 1, customer: who suffers most? "Home bakers" is too broad. Which of these could you find 10 of this week? …
-You:    Home bakers selling kuih on WhatsApp in Kuantan.
+You:    Home bakers selling cakes on WhatsApp in our city.
 Coach:  Good, that passes the gate. Step 2, problem: what do they struggle with, in their words? (I've parked "the app" for now.)
 Coach:  … Here's your board so far. [board.png]
 ```

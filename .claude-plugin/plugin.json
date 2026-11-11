@@ -1,6 +1,6 @@
 {
   "name": "javelin-coach",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Coach a team through the Javelin Board: customer, problem, riskiest assumption, interviews, results and a persevere/pivot decision, with a sticky-note board image. Arabic and English.",
   "author": {
     "name": "Team Wamy",

@@ -12,7 +12,7 @@
       "name": "javelin-coach",
       "source": "./",
       "description": "Coach a team through the Javelin Board, from customer and problem to a persevere/pivot decision, with a sticky-note board image. Arabic and English.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "category": "productivity"
     }
   ]
